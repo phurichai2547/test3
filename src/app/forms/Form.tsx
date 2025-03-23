@@ -24,6 +24,10 @@ const Question = ({ questionId }: { questionId: number }) => {
         borderRadius: 2,
       }}
     >
+      <Typography variant="h6" sx={{ marginBottom: 2 }}>
+        Question {questionId}
+      </Typography>
+
       <Box sx={{ display: "flex", alignItems: "center", marginBottom: 2 }}>
         <Radio checkedIcon={<CheckCircle sx={{ color: "#00c62b" }} />} />
         <TextField
@@ -82,11 +86,10 @@ const Form = () => {
         padding: 2,
 
         justifyContent: "space-between",
-        backgroundColor: "white", 
+        backgroundColor: "white",
       }}
     >
       <Box sx={{ width: "100%", backgroundColor: "white", padding: 3 }}>
-       
         <Typography
           variant="h6"
           sx={{
@@ -105,9 +108,6 @@ const Form = () => {
           }}
         />
 
-        <Typography variant="h6" sx={{ marginBottom: 2 }}>
-          Question 1
-        </Typography>
         <TextField
           label="Question*"
           variant="outlined"
