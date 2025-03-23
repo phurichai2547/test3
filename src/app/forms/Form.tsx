@@ -82,11 +82,11 @@ const Form = () => {
         padding: 2,
 
         justifyContent: "space-between",
-        backgroundColor: "white", // ตั้งสีพื้นหลังเป็นสีขาว
+        backgroundColor: "white", 
       }}
     >
       <Box sx={{ width: "100%", backgroundColor: "white", padding: 3 }}>
-        {/* Questionnaire Detail */}
+       
         <Typography
           variant="h6"
           sx={{
