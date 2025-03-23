@@ -19,8 +19,26 @@
   }
 }
 
+/* ตั้งค่าพื้นฐาน */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  font-family: 'Roboto', sans-serif;
+  background-color: #f7f7f7;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.MuiButton-contained {
+  background-color: orange;
+}
+
+.MuiButton-outlined {
+  color: orange;
+  border-color: orange;
+}
+
+.MuiButton-outlined:hover {
+  background-color: rgba(255, 165, 0, 0.1);
 }
