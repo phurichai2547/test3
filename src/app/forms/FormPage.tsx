@@ -20,8 +20,6 @@ const FormPage = () => {
         padding: 2,
         justifyContent: "space-between",
         backgroundColor: "white",
-        width: "1000%",
-        maxWidth: "1200px"
       }}
     >
       <Box sx={{ width: "100%", backgroundColor: "white", padding: 3 }}>
@@ -35,7 +33,6 @@ const FormPage = () => {
           sx={{ marginBottom: 2 }}
         />
 
-    
         {[...Array(questionCount)].map((_, index) => (
           <QuestionPage key={index} questionId={index + 1} />
         ))}
