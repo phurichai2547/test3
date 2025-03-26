@@ -4,7 +4,10 @@ export default function Navbar() {
   return (
     <>
       <Box sx={{ flexGrow: 1 }}>
-        <AppBar position="static" sx={{ bgcolor: "white",  borderBottom:"1px solid #d3d3d3"}}>
+        <AppBar
+          position="static"
+          sx={{ bgcolor: "white", borderBottom: "1px solid #d3d3d3" }}
+        >
           <Toolbar>
             <Typography
               variant="h6"
@@ -21,7 +24,14 @@ export default function Navbar() {
           </Toolbar>
         </AppBar>
 
-        <AppBar position="static" sx={{ bgcolor: "white", boxShadow: "none", borderBottom:"1px solid #d3d3d3"}}>
+        <AppBar
+          position="static"
+          sx={{
+            bgcolor: "white",
+            boxShadow: "none",
+            borderBottom: "1px solid #d3d3d3",
+          }}
+        >
           <Toolbar sx={{ p: "12px", justifyContent: "end" }}>
             <Button
               variant="outlined"
