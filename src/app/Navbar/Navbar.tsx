@@ -1,27 +1,32 @@
 "use client";
 
 import { AppBar, Box, Button, Toolbar, Typography } from "@mui/material";
-import { useTheme } from "@mui/material/styles"; // ใช้ useTheme hook สำหรับดึงธีม
+import { useTheme } from "@mui/material/styles";
 
-export default function Navbar() {
+interface NavbarProps {
+  onSave: () => void; // รับฟังก์ชัน onSave จาก props
+}
+
+export default function Navbar({ onSave }: NavbarProps) {
   const theme = useTheme(); // ใช้ useTheme hook เพื่อดึงธีม
 
   return (
     <Box sx={{ flexGrow: 1 }}>
+      {/* Navbar แรก */}
       <AppBar
         position="static"
         sx={{
-          bgcolor: theme.palette.background.default, // ใช้สีพื้นหลังจากธีม
-          borderBottom: `1px solid ${theme.palette.divider}`, // ใช้สี divider จากธีม
+          bgcolor: theme.palette.background.default,
+          borderBottom: `1px solid ${theme.palette.divider}`,
         }}
       >
         <Toolbar>
           <Typography
             variant="h6"
-            fontFamily={theme.typography.fontFamily} // ใช้ฟอนต์จากธีม
+            fontFamily={theme.typography.fontFamily}
             sx={{
               flexGrow: 1,
-              color: theme.palette.text.primary, // ใช้สีข้อความจากธีม
+              color: theme.palette.text.primary,
               paddingBottom: 1,
             }}
           >
@@ -30,12 +35,13 @@ export default function Navbar() {
         </Toolbar>
       </AppBar>
 
+      {/* Navbar ที่สอง */}
       <AppBar
         position="static"
         sx={{
-          bgcolor: theme.palette.background.default, // ใช้สีพื้นหลังจากธีม
+          bgcolor: theme.palette.background.default,
           boxShadow: "none",
-          borderBottom: `1px solid ${theme.palette.divider}`, // ใช้สี divider จากธีม
+          borderBottom: `1px solid ${theme.palette.divider}`,
         }}
       >
         <Toolbar sx={{ p: "12px", justifyContent: "end" }}>
@@ -46,7 +52,7 @@ export default function Navbar() {
               width: "89px",
               height: "48px",
               borderRadius: 2,
-              fontFamily: theme.typography.fontFamily, // ใช้ฟอนต์จากธีม
+              fontFamily: theme.typography.fontFamily,
             }}
           >
             Cancel
@@ -58,9 +64,10 @@ export default function Navbar() {
               width: "180px",
               height: "48px",
               borderRadius: 2,
-              fontFamily: theme.typography.fontFamily, // ใช้ฟอนต์จากธีม
+              fontFamily: theme.typography.fontFamily,
               ml: "12px",
             }}
+            onClick={onSave} // เมื่อคลิกปุ่ม Save จะเรียก onSave
           >
             Save
           </Button>

@@ -16,7 +16,7 @@
     "next": "15.2.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-hook-form": "^7.54.2",
+    "react-hook-form": "^7.56.0",
     "theme-ui": "^0.17.2"
   },
   "devDependencies": {
