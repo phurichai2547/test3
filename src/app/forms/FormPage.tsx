@@ -9,6 +9,7 @@ import Navbar from "../Navbar/Navbar";
 interface Choice {
   description: string; // คำอธิบายของตัวเลือก
   isAnswer: boolean; // ใช้บอกว่าเป็นคำตอบที่ถูกต้องหรือไม่
+  id: number; // id ที่ต้องมีใน Choice
 }
 
 // กำหนด interface สำหรับ Question (คำถาม)
@@ -33,6 +34,7 @@ const initialState: formData = {
         {
           description: "", // ค่าเริ่มต้นของตัวเลือกคำตอบ
           isAnswer: false, // ค่าเริ่มต้นของตัวเลือกคำตอบที่ถูกต้อง
+          id: Date.now(), // สร้าง id ใหม่ทุกครั้ง
         },
       ],
     },
@@ -40,8 +42,8 @@ const initialState: formData = {
 };
 
 const FormPage = () => {
+  // ประกาศ methods โดยใช้ useForm จาก react-hook-form
   const methods = useForm<formData>({
-    // สร้าง instance ของ useForm
     defaultValues: initialState, // กำหนดค่าเริ่มต้นของฟอร์ม
     mode: "onSubmit", // ใช้โหมดการตรวจสอบค่าภายในฟอร์มเมื่อส่ง
   });
@@ -49,9 +51,17 @@ const FormPage = () => {
   // ฟังก์ชันสำหรับเพิ่มคำถามใหม่
   const handleAddQuestion = () => {
     methods.setValue("questions", [
-      // ใช้ setValue เพื่ออัปเดตค่าในฟอร์ม
       ...methods.getValues("questions"), // ดึงค่าของคำถามทั้งหมด
-      { question: "", choices: [{ description: "", isAnswer: false }] }, // เพิ่มคำถามใหม่
+      {
+        question: "",
+        choices: [
+          {
+            description: "",
+            isAnswer: false,
+            id: Date.now(), // เพิ่ม id ใหม่ทุกครั้งที่เพิ่มคำถาม
+          },
+        ],
+      },
     ]);
   };
 
@@ -62,11 +72,8 @@ const FormPage = () => {
 
   return (
     <FormProvider {...methods}>
-      {" "}
-      {/* ห่อหุ้มฟอร์มทั้งหมดด้วย FormProvider */}
+      <Navbar onSave={methods.handleSubmit(handleSave)} />
       <Box sx={{ padding: 1 }}>
-        <Navbar onSave={methods.handleSubmit(handleSave)} />{" "}
-        {/* เรียก Navbar และส่ง onSave */}
         <Typography variant="h6" sx={{ marginBottom: 2 }}>
           Questionnaire Detail
         </Typography>
@@ -75,41 +82,36 @@ const FormPage = () => {
           variant="outlined"
           fullWidth
           {...methods.register("questionnaireDetail", {
-            // ใช้ register เพื่อลงทะเบียนฟิลด์ใน react-hook-form
-            required: "Please fill in this option", // กำหนดว่าเป็นฟิลด์ที่ต้องกรอก
+            required: "Please fill in this option",
           })}
-          error={!!methods.formState.errors.questionnaireDetail} // เช็คว่ามีข้อผิดพลาดหรือไม่
-          helperText={methods.formState.errors.questionnaireDetail?.message} // แสดงข้อความข้อผิดพลาด
+          error={!!methods.formState.errors.questionnaireDetail}
+          helperText={methods.formState.errors.questionnaireDetail?.message}
           sx={{ marginBottom: 3 }}
         />
-        {/* แสดงคำถามที่กรอกแล้ว */}
         {methods.watch("questions").map((question, index) => (
           <QuestionPage
-            key={index} // ใช้ index เพื่อเป็น key ของแต่ละคำถาม
-            questionId={index + 1} // หมายเลขคำถาม
-            question={question} // คำถามที่ส่งมา
+            key={index}
+            questionId={index + 1}
+            question={question}
             onDelete={() =>
-              // ฟังก์ชันลบคำถาม
               methods.setValue(
                 "questions",
-                methods.getValues("questions").filter((_, i) => i !== index) // ลบคำถามที่เลือก
+                methods.getValues("questions").filter((_, i) => i !== index)
               )
             }
             onDuplicate={() => {
-              // ฟังก์ชันสำหรับคัดลอกคำถามใต้ add choice
-              const questions = methods.getValues("questions"); // ดึงข้อมูลจากคำถามทั้งหมด
+              const questions = methods.getValues("questions");
               methods.setValue("questions", [
                 ...questions,
-                { ...questions[index] }, // คัดลอกคำถามที่เลือก
+                { ...questions[index] },
               ]);
             }}
           />
         ))}
-        {/* ปุ่ม Add Question */}
         <Button
-          onClick={handleAddQuestion} // เมื่อคลิกจะเรียกฟังก์ชัน handleAddQuestion
+          onClick={handleAddQuestion}
           variant="outlined"
-          fullWidth // ทำให้ปุ่มเต็มในแนวกว้าง
+          fullWidth
           sx={{ marginTop: 2 }}
         >
           Add Question

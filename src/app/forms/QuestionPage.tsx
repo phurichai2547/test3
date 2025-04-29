@@ -1,137 +1,146 @@
 "use client";
 
-import {
-  Box,
-  TextField,
-  Button,
-  Typography,
-  IconButton,
-  Radio,
-} from "@mui/material";
+import { Box, Button, TextField, Typography, IconButton, Radio } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import CheckCircle from "@mui/icons-material/CheckCircle";
 import AddIcon from "@mui/icons-material/Add";
-import { useState } from "react"; // ใช้ useState hook สำหรับการจัดการ state
-import { useTheme } from "@mui/material/styles"; // ใช้ useTheme hook เพื่อดึงธีม
-import { Controller, useFormContext } from "react-hook-form"; // ใช้ Controller และ useFormContext จาก react-hook-form เพื่อจัดการฟอร์ม
+import { useTheme } from "@mui/material/styles";
+import { Controller, useFormContext, useFieldArray } from "react-hook-form"; // ใช้ useFieldArray สำหรับการอัปเดต choices
 
-// กำหนด interface สำหรับ Choice (ตัวเลือกคำตอบ)
+// ประกาศ type ของตัวเลือกแต่ละตัว
 interface Choice {
-  description: string; // คำอธิบายของตัวเลือก
-  isAnswer: boolean; // กำหนดว่าเป็นคำตอบที่ถูกต้องหรือไม่
+  id: number; // เพิ่ม id สำหรับ choice
+  description: string;
+  isAnswer: boolean;
 }
 
-// กำหนด interface สำหรับ Question (คำถาม)
+// ประกาศ type ของคำถามแต่ละข้อ
 interface Question {
-  question: string; // คำถาม
-  choices: Choice[]; // ตัวเลือกคำตอบ
+  question: string;
+  choices: Choice[]; // รายการของตัวเลือกคำตอบ
+}
+
+// โครงสร้างข้อมูลของทั้งแบบสอบถาม
+interface formData {
+  questionnaireDetail: string;
+  questions: Question[]; // รายการคำถามทั้งหมด
 }
 
 const QuestionPage = ({
-  questionId, // รับหมายเลขคำถาม
-  question, // รับคำถามและตัวเลือก
-  onDelete, // ฟังก์ชันลบคำถาม
-  onDuplicate, // ฟังก์ชันคัดลอกคำถาม
+  questionId,
+  question,
+  onDelete,
+  onDuplicate,
 }: {
   questionId: number;
   question: Question;
   onDelete: () => void;
   onDuplicate: () => void;
 }) => {
-  const theme = useTheme(); // ใช้ hook useTheme เพื่อดึงธีม
+  const theme = useTheme();
   const {
     control,
     formState: { errors },
-  } = useFormContext<formData>();
-  // ใช้ hook useFormContext เพื่อเข้าถึงค่าจาก react-hook-form และใช้ errors เพื่อตรวจสอบข้อผิดพลาด
-  const [choices, setChoices] = useState(question.choices); // กำหนด state สำหรับตัวเลือกคำตอบที่ได้รับจากคำถาม
+    setValue,
+  } = useFormContext<formData>(); // ดึง context จาก react-hook-form มาใช้งาน
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: `questions.${questionId - 1}.choices`, // ผูกกับชื่อของฟิลด์ใน react-hook-form
+  });
 
   // ฟังก์ชันสำหรับเพิ่มตัวเลือกใหม่
   const handleAddChoice = () => {
-    setChoices([...choices, { description: "", isAnswer: false }]); // เพิ่มตัวเลือกใหม่ที่มีคำอธิบายเป็นค่าว่างและ isAnswer เป็น false
+    append({ description: "", isAnswer: false, id: Date.now() }); // ใช้ append เพื่อเพิ่ม choice ใหม่
   };
 
-  // ฟังก์ชันสำหรับลบตัวเลือก
-  const handleDeleteChoice = (index: number) => {
-    setChoices(choices.filter((_, i) => i !== index)); // ลบตัวเลือกที่มี index ตรงกับตัวเลือกที่เลือก
+  // ฟังก์ชันลบตัวเลือกที่มี id ตรงกับที่กด
+  const handleDeleteChoice = (id: number) => {
+    const index = fields.findIndex((field) => field.id === id);
+    if (index !== -1) {
+      remove(index); // ลบ choice ที่มี id ตรง
+    }
+  };
+
+  // เลือกคำตอบที่ถูกต้องเพียงตัวเดียว
+  const handleChoiceChange = (id: number) => {
+    const updatedChoices = fields.map((choice) => ({
+      ...choice,
+      isAnswer: choice.id === id, // เปลี่ยนตัวเลือกที่มี `id` ตรง
+    }));
+    updatedChoices.forEach((choice, index) => {
+      setValue(`questions.${questionId - 1}.choices.${index}`, choice); // ซิงค์กับ react-hook-form
+    });
   };
 
   return (
     <Box
       sx={{
-        border: `1px solid ${theme.palette.divider}`, // กำหนดสีของกรอบของกล่องจากธีม
-        padding: theme.spacing(2), // กำหนดระยะห่างภายในกล่องตามธีม
-        marginBottom: 2, // ระยะห่างด้านล่าง
-        borderRadius: 2, // ขอบกล่องมน
+        border: `1px solid ${theme.palette.divider}`,
+        padding: theme.spacing(2),
+        marginBottom: 2,
+        borderRadius: 2,
       }}
     >
-      <Typography
-        variant="h6"
-        sx={{ marginBottom: 2, color: theme.palette.text.primary }} // ใช้สีข้อความจากธีม
-      >
-        Question {questionId} {/* แสดงหมายเลขคำถาม */}
+      <Typography variant="h6" sx={{ marginBottom: 2, color: theme.palette.text.primary }}>
+        Question {questionId}
       </Typography>
 
-      {/* ใช้ Controller จาก react-hook-form สำหรับจัดการฟอร์ม */}
+      {/* ช่องกรอกคำถาม */}
       <Controller
-        name={`questions[${questionId - 1}].question`} // ชื่อฟิลด์ในฟอร์ม
-        control={control} // ใช้ control จาก useFormContext เพื่อให้ฟอร์มรู้จักฟิลด์นี้
-        defaultValue={question.question} // ค่าเริ่มต้นของคำถามจาก props
-        rules={{ required: "Please fill in this option" }} // กำหนด validation ว่าต้องกรอกคำถาม
+        name={`questions.${questionId - 1}.question`}
+        control={control}
+        defaultValue={question.question}
+        rules={{ required: "Please fill in this option" }}
         render={({ field }) => (
           <TextField
-            {...field} // spread props ที่ได้จาก field ของ react-hook-form
-            label="Question*" // ใส่ label สำหรับฟิลด์
-            variant="outlined" // ใช้รูปแบบป้ายกำกับ
-            fullWidth // ให้ฟิลด์ขยายเต็มความกว้าง
-            error={!!errors.questions?.[questionId - 1]?.question} // ถ้ามีข้อผิดพลาดในคำถามจะแสดงเป็น error
-            helperText={errors.questions?.[questionId - 1]?.question?.message} // ข้อความแนะนำสำหรับข้อผิดพลาด
-            sx={{
-              marginBottom: 2,
-            }}
+            {...field}
+            label="Question*"
+            variant="outlined"
+            fullWidth
+            error={!!errors.questions?.[questionId - 1]?.question}
+            helperText={errors.questions?.[questionId - 1]?.question?.message}
+            sx={{ marginBottom: 2 }}
           />
         )}
       />
 
-      {/* แสดงตัวเลือก (choices) */}
-      {choices.map((choice, index) => (
-        <Box
-          sx={{ display: "flex", alignItems: "center", marginBottom: 2 }}
-          key={index} // ใช้ index เป็น key สำหรับลูป
-        >
+      {/* แสดงตัวเลือกแต่ละข้อ */}
+      {fields.map((choice, index) => (
+        <Box key={choice.id} sx={{ display: "flex", alignItems: "center", marginBottom: 2 }}>
           <Radio
-            checkedIcon={
-              <CheckCircle sx={{ color: theme.palette.success.main }} />
-            }
+            checked={choice.isAnswer}
+            onChange={() => handleChoiceChange(choice.id)} // เมื่อเลือก radio ตัวนี้
+            checkedIcon={<CheckCircle sx={{ color: theme.palette.success.main }} />}
           />
-          {/* ใช้ Controller สำหรับ Description */}
-          <Controller
-            name={`questions[${questionId - 1}].choices[${index}].description`} // ชื่อฟิลด์สำหรับคำอธิบายตัวเลือก
-            control={control} // ใช้ control จาก useFormContext
-            defaultValue={choice.description} // ค่าเริ่มต้นจาก choice.description
-            rules={{ required: "Please fill in this option" }}
-            render={({ field }) => (
-              <TextField
-                {...field} // spread props ของ field
-                label="Description*"
-                variant="outlined"
-                fullWidth
-                error={
-                  !!errors.questions?.[questionId - 1]?.choices?.[index]
-                    ?.description
-                } // ถ้ามีข้อผิดพลาดจะแสดง error
-                helperText={
-                  errors.questions?.[questionId - 1]?.choices?.[index]
-                    ?.description?.message
-                } // ข้อความแนะนำสำหรับข้อผิดพลาด
-                sx={{
-                  marginRight: 2,
-                }}
-              />
-            )}
-          />
-          <IconButton onClick={() => handleDeleteChoice(index)}>
+          <Box sx={{ flexGrow: 1 }}>
+            <Controller
+              name={`questions.${questionId - 1}.choices.${index}.description`}
+              control={control}
+              defaultValue={choice.description}
+              rules={{ required: "Please fill in this option" }}
+              render={({ field }) => {
+                const isAnswer = choice.isAnswer;
+                const fieldError = errors.questions?.[questionId - 1]?.choices?.[index]?.description;
+
+                return (
+                  <TextField
+                    {...field}
+                    label="Description*"
+                    variant="outlined"
+                    fullWidth
+                    error={!isAnswer && !!fieldError}
+                    helperText={isAnswer ? "This answer is correct" : fieldError?.message || ""}
+                    sx={{ marginRight: 2 }}
+                  />
+                );
+              }}
+            />
+          </Box>
+
+          {/* ปุ่มลบตัวเลือก */}
+          <IconButton onClick={() => handleDeleteChoice(choice.id)}>
             <DeleteOutlineIcon />
           </IconButton>
         </Box>
@@ -145,25 +154,19 @@ const QuestionPage = ({
           gap: 1,
           fontFamily: theme.typography.fontFamily,
         }}
-        onClick={handleAddChoice} // เรียกฟังก์ชัน handleAddChoice เมื่อคลิก
+        onClick={handleAddChoice}
       >
         <AddIcon />
         <p>Add Choice</p>
       </Button>
 
-      {/* ปุ่มสำหรับ Duplicate และ Delete */}
+      {/* ปุ่ม duplicate และ delete คำถาม */}
       <Box sx={{ display: "flex", gap: 2, marginTop: 2 }}>
-        <Button
-          sx={{ gap: 1, color: theme.palette.text.primary }}
-          onClick={onDuplicate} // เรียกฟังก์ชัน onDuplicate เมื่อคลิก
-        >
+        <Button sx={{ gap: 1, color: theme.palette.text.primary }} onClick={onDuplicate}>
           <ContentCopyIcon />
           <p>Duplicate</p>
         </Button>
-        <Button
-          sx={{ gap: 1, color: theme.palette.text.primary }}
-          onClick={onDelete} // เรียกฟังก์ชัน onDelete เมื่อคลิก
-        >
+        <Button sx={{ gap: 1, color: theme.palette.text.primary }} onClick={onDelete}>
           <DeleteOutlineIcon />
           <p>Delete</p>
         </Button>

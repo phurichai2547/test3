@@ -8,7 +8,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ onSave }: NavbarProps) {
-  const theme = useTheme(); // ใช้ useTheme hook เพื่อดึงธีม
+  const theme = useTheme();
 
   return (
     <Box sx={{ flexGrow: 1 }}>
