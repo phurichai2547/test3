@@ -1,29 +1,28 @@
-"use client";
+import { Box, Button, TextField, Typography, IconButton, Radio } from "@mui/material"; 
+import ContentCopyIcon from "@mui/icons-material/ContentCopy"; 
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline"; 
+import CheckCircle from "@mui/icons-material/CheckCircle"; 
+import AddIcon from "@mui/icons-material/Add"; 
+import { useTheme } from "@mui/material/styles"; 
+import { Controller, useFormContext, useFieldArray } from "react-hook-form"; 
+import React, { useEffect } from "react";
 
-import { Box, Button, TextField, Typography, IconButton, Radio } from "@mui/material";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import CheckCircle from "@mui/icons-material/CheckCircle";
-import AddIcon from "@mui/icons-material/Add";
-import { useTheme } from "@mui/material/styles";
-import { Controller, useFormContext, useFieldArray } from "react-hook-form"; // ใช้ useFieldArray สำหรับการอัปเดต choices
-
-// ประกาศ type ของตัวเลือกแต่ละตัว
+// ประกาศ type ของตัวเลือกแต่ละตัว (Choice)
 interface Choice {
-  id: number; // เพิ่ม id สำหรับ choice
-  description: string;
-  isAnswer: boolean;
+  id: number; // id ที่ใช้สำหรับระบุตัวเลือก
+  description: string; // คำอธิบายของตัวเลือก
+  isAnswer: boolean; // ค่าบอกว่าตัวเลือกนี้เป็นคำตอบที่ถูกต้องหรือไม่
 }
 
-// ประกาศ type ของคำถามแต่ละข้อ
+// ประกาศ type ของคำถามแต่ละข้อ (Question)
 interface Question {
-  question: string;
+  question: string; // คำถาม
   choices: Choice[]; // รายการของตัวเลือกคำตอบ
 }
 
-// โครงสร้างข้อมูลของทั้งแบบสอบถาม
+// โครงสร้างข้อมูลของฟอร์มทั้งหมด (formData)
 interface formData {
-  questionnaireDetail: string;
+  questionnaireDetail: string; // ชื่อฟอร์ม
   questions: Question[]; // รายการคำถามทั้งหมด
 }
 
@@ -60,6 +59,10 @@ const QuestionPage = ({
     const index = fields.findIndex((field) => field.id === id);
     if (index !== -1) {
       remove(index); // ลบ choice ที่มี id ตรง
+      // ถ้าลบข้อสุดท้ายให้กลับมาตั้งค่าตัวเลือกแรก
+      if (fields.length === 1) {
+        setDefaultAnswer(); // กลับไปที่ตัวเลือกแรก
+      }
     }
   };
 
@@ -74,6 +77,30 @@ const QuestionPage = ({
     });
   };
 
+  // ฟังก์ชันตั้งค่า default ให้ตัวเลือกแรกเป็น isAnswer: true
+  const setDefaultAnswer = () => {
+    const updatedChoices = fields.map((choice, index) => ({
+      ...choice,
+      isAnswer: index === 0, // ตัวเลือกแรกจะถูกตั้งให้เป็น true โดยอัตโนมัติ
+    }));
+
+    updatedChoices.forEach((choice, index) => {
+      setValue(`questions.${questionId - 1}.choices.${index}`, choice); // ซิงค์กับ react-hook-form
+    });
+  };
+
+  // เมื่อคำถามโหลดขึ้นมาจะตั้งค่าตัวเลือกแรกเป็น isAnswer: true
+  useEffect(() => {
+    // ตรวจสอบว่า fields ว่างหรือไม่
+    if (fields.length === 0) {
+      // เพิ่มตัวเลือกแรกที่มี isAnswer: true ทันที
+      append({ description: "", isAnswer: true, id: Date.now() });
+    } else {
+      // ตั้งค่าตัวเลือกแรกเป็นคำตอบที่ถูกต้อง
+      setDefaultAnswer();
+    }
+  }, [fields, append, setValue, questionId]);
+
   return (
     <Box
       sx={{
@@ -83,7 +110,10 @@ const QuestionPage = ({
         borderRadius: 2,
       }}
     >
-      <Typography variant="h6" sx={{ marginBottom: 2, color: theme.palette.text.primary }}>
+      <Typography
+        variant="h6"
+        sx={{ marginBottom: 2, color: theme.palette.text.primary }}
+      >
         Question {questionId}
       </Typography>
 
@@ -108,11 +138,16 @@ const QuestionPage = ({
 
       {/* แสดงตัวเลือกแต่ละข้อ */}
       {fields.map((choice, index) => (
-        <Box key={choice.id} sx={{ display: "flex", alignItems: "center", marginBottom: 2 }}>
+        <Box
+          key={choice.id}
+          sx={{ display: "flex", alignItems: "center", marginBottom: 2 }}
+        >
           <Radio
-            checked={choice.isAnswer}
+            checked={choice.isAnswer} // ตัวเลือกแรกถูกติ๊กโดยอัตโนมัติ
             onChange={() => handleChoiceChange(choice.id)} // เมื่อเลือก radio ตัวนี้
-            checkedIcon={<CheckCircle sx={{ color: theme.palette.success.main }} />}
+            checkedIcon={
+              <CheckCircle sx={{ color: theme.palette.success.main }} />
+            }
           />
           <Box sx={{ flexGrow: 1 }}>
             <Controller
@@ -122,7 +157,9 @@ const QuestionPage = ({
               rules={{ required: "Please fill in this option" }}
               render={({ field }) => {
                 const isAnswer = choice.isAnswer;
-                const fieldError = errors.questions?.[questionId - 1]?.choices?.[index]?.description;
+                const fieldError =
+                  errors.questions?.[questionId - 1]?.choices?.[index]
+                    ?.description;
 
                 return (
                   <TextField
@@ -131,7 +168,11 @@ const QuestionPage = ({
                     variant="outlined"
                     fullWidth
                     error={!isAnswer && !!fieldError}
-                    helperText={isAnswer ? "This answer is correct" : fieldError?.message || ""}
+                    helperText={
+                      isAnswer
+                        ? "This answer is correct"
+                        : fieldError?.message || ""
+                    }
                     sx={{ marginRight: 2 }}
                   />
                 );
@@ -162,11 +203,17 @@ const QuestionPage = ({
 
       {/* ปุ่ม duplicate และ delete คำถาม */}
       <Box sx={{ display: "flex", gap: 2, marginTop: 2 }}>
-        <Button sx={{ gap: 1, color: theme.palette.text.primary }} onClick={onDuplicate}>
+        <Button
+          sx={{ gap: 1, color: theme.palette.text.primary }}
+          onClick={onDuplicate}
+        >
           <ContentCopyIcon />
           <p>Duplicate</p>
         </Button>
-        <Button sx={{ gap: 1, color: theme.palette.text.primary }} onClick={onDelete}>
+        <Button
+          sx={{ gap: 1, color: theme.palette.text.primary }}
+          onClick={onDelete}
+        >
           <DeleteOutlineIcon />
           <p>Delete</p>
         </Button>
